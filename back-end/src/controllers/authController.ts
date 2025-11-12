@@ -32,3 +32,35 @@ export const userRegister = async (req: Request, res: Response) => {
     res.status(500).json({ message: "User Registration Failed...!" });
   }
 }
+
+export const userLogin = async (req: Request, res: Response) => {
+
+  try {
+    const { email, password } = req.body;
+
+    const exsitingUser = await User.findOne({ email });
+    if (!exsitingUser) {
+      return res.status(401).json({ message: "Invalid creadentials...!" });
+    }
+
+    const vlaid = await bcrypt.compare(password, exsitingUser.password);
+
+    if (!vlaid) {
+      return res.status(401).json({ message: "Invalid creadentials...!" });
+    }
+
+    // token generation
+    
+    
+    res.status(200).json({
+      message: "Login successful", data: {
+        email: exsitingUser.email,
+        id: exsitingUser._id
+        //token
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: "User login Failed...!" });
+  }
+}
