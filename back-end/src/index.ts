@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import authRouter from "./routes/authRouter";
+import cloudinaryRouter from "./routes/cloudinaryRoutes";
 
 dotenv.config();
 
@@ -20,6 +21,9 @@ app.use(cors({
 
 //auth router
 app.use('/api/v1/auth', authRouter);
+
+//cloudinary router
+app.use('/api/v1/cloudinary', cloudinaryRouter);
 
 
 mongoose.connect(MONGO_URI).then(() => {
