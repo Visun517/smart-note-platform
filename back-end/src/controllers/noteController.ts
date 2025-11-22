@@ -1,6 +1,10 @@
 import { AuthRequest } from "../middleware/authMiddleware";
 import { Response } from "express";
 import { Note } from "../models/note.modle";
+import path from "path";
+import fs from "fs-extra";
+import puppeteer from "puppeteer";
+import cloudinary from "../config/cloudinary";
 
 export const createNote = async (req: AuthRequest, res: Response) => {
   try {
@@ -22,15 +26,15 @@ export const createNote = async (req: AuthRequest, res: Response) => {
       userId,
     });
 
-    res.status(201).json({ message: "Note Created Successfully...!", data: note });
-
+    res
+      .status(201)
+      .json({ message: "Note Created Successfully...!", data: note });
   } catch (error) {
     res.status(500).json({ message: "Note Creation Failed...!" });
   }
 };
 
 export const getAllNotes = async (req: AuthRequest, res: Response) => {
-
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
@@ -46,7 +50,7 @@ export const getAllNotes = async (req: AuthRequest, res: Response) => {
       .limit(limit)
       .sort({ createdAt: -1 });
 
-    console.log(notes)
+    console.log(notes);
 
     const totalPages = Math.ceil(totalNotesCount / limit);
 
@@ -56,14 +60,12 @@ export const getAllNotes = async (req: AuthRequest, res: Response) => {
       totalNotesCount,
       notes,
     });
-
   } catch (error) {
     res.status(500).json({ message: "Note fetched Failed...!" });
   }
 };
 
 export const getNoteById = async (req: AuthRequest, res: Response) => {
-
   try {
     const userId = req.user.sub;
     const noteId = req.params.id;
@@ -72,17 +74,14 @@ export const getNoteById = async (req: AuthRequest, res: Response) => {
 
     res.status(200).json({
       message: "Note fetched Successfully...!",
-      note
+      note,
     });
-
   } catch (error) {
     res.status(500).json({ message: "One Note fetched Failed...!" });
   }
-
-}
+};
 
 export const updateNoteById = async (req: AuthRequest, res: Response) => {
-
   try {
     const { title, html, json, subjectId, userId } = req.body;
     const images: string[] = req.body?.images || [];
@@ -102,12 +101,13 @@ export const updateNoteById = async (req: AuthRequest, res: Response) => {
       userId,
     });
 
-    res.status(201).json({ message: "Note updated Successfully...!", data: note });
-
+    res
+      .status(201)
+      .json({ message: "Note updated Successfully...!", data: note });
   } catch (error) {
     res.status(500).json({ message: "Note update Failed...!" });
   }
-}
+};
 
 export const deleteNoteById = async (req: AuthRequest, res: Response) => {
   try {
@@ -115,9 +115,56 @@ export const deleteNoteById = async (req: AuthRequest, res: Response) => {
 
     const deletedNote = await Note.findByIdAndDelete(noteId);
 
-    res.status(200).json({ message: "Note deleted Successfully...!", data: deletedNote });
-    
+    res
+      .status(200)
+      .json({ message: "Note deleted Successfully...!", data: deletedNote });
   } catch (error) {
     res.status(500).json({ message: "Note delete Failed...!" });
   }
-}
+};
+
+export const pdfGeneration = async (req: AuthRequest, res: Response) => {
+  try {
+    const noteId = req.params.id;
+
+    const note = await Note.findById(noteId);
+    if (!note) {
+      return res.status(404).json({ message: "Note not found...!" });
+    }
+
+    const htmlContent = note.html || "<p>(Empty Note)</p>";
+
+    const tempPath = path.join("temp", `${noteId}.pdf`);
+    fs.ensureDirSync("temp");
+
+    const browser = await puppeteer.launch({
+      headless: true,
+    });
+
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: "networkidle0" , timeout: 60000});
+
+    await page.pdf({
+      path: tempPath,
+      format: "A4",
+      printBackground: true,
+    });
+
+    await browser.close();
+
+    const uploadResult = await cloudinary.uploader.upload(tempPath, {
+      resource_type: "raw",
+      folder: "notes_pdfs",
+      public_id: noteId,
+    });
+
+    return res.status(200).json({
+      message: "PDF generated successfully!",
+      pdfUrl: uploadResult.secure_url,
+    });
+
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ message: "PDF generation Failed...!" });
+  }
+};

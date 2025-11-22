@@ -36,7 +36,8 @@ app.use('/api/v1/subject', subjectRouter);
 
 mongoose.connect(MONGO_URI).then(() => {
   console.log('Database is connected..!')
-}).catch((error) => {
+
+}).catch((error : any) => {
   console.log('Fail to connect Database..!' , error)
   process.exit(1)
 })

@@ -1,6 +1,6 @@
 import { Router  } from "express";
 import { authenticate } from "../middleware/authMiddleware";
-import { createNote, deleteNoteById, getAllNotes, getNoteById, updateNoteById } from "../controllers/noteController";
+import { createNote, deleteNoteById, getAllNotes, getNoteById, pdfGeneration, updateNoteById } from "../controllers/noteController";
 
 const noteRouter = Router();
 
@@ -34,6 +34,11 @@ noteRouter.delete(
   deleteNoteById
 )
 
+noteRouter.get(
+  '/pdf/:id',
+  authenticate,
+  pdfGeneration
+)
 
 export default noteRouter;
 
