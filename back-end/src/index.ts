@@ -4,6 +4,8 @@ import cors from "cors";
 import mongoose from "mongoose";
 import authRouter from "./routes/authRouter";
 import cloudinaryRouter from "./routes/cloudinaryRoutes";
+import noteRouter from "./routes/noteRoutes";
+import subjectRouter from "./routes/subjectsRoutes";
 
 dotenv.config();
 
@@ -24,6 +26,12 @@ app.use('/api/v1/auth', authRouter);
 
 //cloudinary router
 app.use('/api/v1/cloudinary', cloudinaryRouter);
+
+//note router
+app.use('/api/v1/note', noteRouter);
+
+// subject router
+app.use('/api/v1/subject', subjectRouter);
 
 
 mongoose.connect(MONGO_URI).then(() => {
