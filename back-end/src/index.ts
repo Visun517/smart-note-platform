@@ -6,6 +6,7 @@ import authRouter from "./routes/authRouter";
 import cloudinaryRouter from "./routes/cloudinaryRoutes";
 import noteRouter from "./routes/noteRoutes";
 import subjectRouter from "./routes/subjectsRoutes";
+import aiRouter from "./routes/aiRouter";
 
 dotenv.config();
 
@@ -33,6 +34,8 @@ app.use('/api/v1/note', noteRouter);
 // subject router
 app.use('/api/v1/subject', subjectRouter);
 
+// AI router
+app.use('/api/v1/ai' , aiRouter);
 
 mongoose.connect(MONGO_URI).then(() => {
   console.log('Database is connected..!')
